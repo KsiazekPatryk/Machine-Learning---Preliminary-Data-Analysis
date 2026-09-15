@@ -105,6 +105,13 @@ Main steps currently implemented:
    - Loads `train_scores.csv`.
    - Creates a stratified 80/20 split of the score table into `X_train_scores.csv` and `X_test_scores.csv`.
 
+7. **Worksheet Verification Checks**
+   - Verifies whether `word_count` is cumulative or reflects the current essay state after each event.
+   - Confirms that `word_count` decreases in all 2,471 essays, mainly during `Remove/Cut` and `Replace` activities, so it is not a cumulative counter of all words ever typed.
+   - Checks `down_time` and `up_time` ordered by `id` and `event_id`.
+   - Reports 2,213 essay IDs where `down_time` or `up_time` actually decreases between consecutive events (`diff < 0`). This is the worksheet answer for the second question.
+   - Keeps the stricter/non-strict comparison (`diff <= 0`) only as additional context; that variant gives 2,268 IDs because it also counts equal timestamps.
+
 ### Purpose
 This project currently lays the groundwork for feature engineering and model building by:
 - Validating data integrity (no unexpected duplicates, consistent schema between train/test).
@@ -112,6 +119,7 @@ This project currently lays the groundwork for feature engineering and model bui
 - Understanding the distributions of key behavioral features (timing, activity type, word count).
 - Understanding the distribution of the target variable (essay score) to inform modeling choices.
 - Producing an initial aggregated feature table at essay level for future model experiments.
+- Verifying worksheet assumptions about `word_count` and event timing behavior directly from `train_logs.csv`.
 
 ---
 
@@ -220,6 +228,13 @@ Aktualnie zaimplementowane kroki:
    - Wczytuje `train_scores.csv`.
    - Tworzy stratyfikowany podział tabeli ocen w proporcji 80/20 do plików `X_train_scores.csv` i `X_test_scores.csv`.
 
+7. **Weryfikacje do arkusza**
+   - Sprawdza, czy `word_count` jest licznikiem kumulatywnym, czy odzwierciedla bieżący stan eseju po każdym zdarzeniu.
+   - Potwierdza, że `word_count` spada we wszystkich 2 471 esejach, głównie przy aktywnościach `Remove/Cut` i `Replace`, więc nie jest licznikiem wszystkich kiedykolwiek wpisanych słów.
+   - Sprawdza `down_time` i `up_time` po posortowaniu danych według `id` oraz `event_id`.
+   - Wskazuje 2 213 identyfikatorów esejów, dla których `down_time` albo `up_time` faktycznie spada między kolejnymi zdarzeniami (`diff < 0`). To jest poprawna odpowiedź do drugiego pytania w arkuszu.
+   - Zostawia wariant porównawczy (`diff <= 0`) tylko jako kontekst; daje on 2 268 ID, ponieważ dolicza także równe znaczniki czasu.
+
 ### Cel
 Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
 - Weryfikację integralności danych (brak nieoczekiwanych duplikatów, spójny schemat między zbiorem treningowym i testowym).
@@ -227,3 +242,4 @@ Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy 
 - Zrozumienie rozkładów kluczowych cech behawioralnych (czasy, typ aktywności, liczba słów).
 - Zrozumienie rozkładu zmiennej docelowej (ocena eseju), co pomaga w podejmowaniu decyzji modelowych.
 - Wygenerowanie pierwszej zagregowanej tabeli cech na poziomie eseju do przyszłych eksperymentów modelowych.
+- Zweryfikowanie założeń z arkusza dotyczących `word_count` oraz zachowania czasów zdarzeń bezpośrednio na podstawie `train_logs.csv`.
