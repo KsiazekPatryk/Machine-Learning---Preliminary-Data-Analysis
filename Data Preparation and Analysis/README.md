@@ -1,17 +1,24 @@
-# Preliminary Data Analysis — Linking Writing Processes to Writing Quality
+# Preliminary Data Analysis - Linking Writing Processes to Writing Quality
 
 ## English
 
 ### Overview
-This notebook (`1) Preliminary-Data-Analysis.ipynb`) performs an exploratory/preliminary data analysis (EDA) for the Kaggle competition **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. The goal of the competition is to predict essay writing quality scores based on typing/editing behavior logged during the writing process (keystrokes, mouse actions, timings, etc.).
+This project contains exploratory data analysis and early feature preparation for the Kaggle competition **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. The goal of the competition is to predict essay writing quality scores based on typing/editing behavior logged during the writing process (keystrokes, mouse actions, timings, pauses, text edits, etc.).
+
+The work is split across two notebooks:
+- `1) Preliminary-Data-Analysis.ipynb` - exploratory data analysis (EDA), data quality checks, feature distribution review, and target score analysis.
+- `2) Future Preparation for the Model.ipynb` - initial feature engineering from event-level logs, generation of aggregated essay-level features, profiling of engineered data, and an 80/20 train/test split of score rows.
 
 ### Datasets Used
-- `train_logs.csv` – event-level logs of writing actions (keystrokes, mouse clicks, pauses, etc.) for the training essays.
-- `test_logs.csv` – same type of logs for the test essays (no target scores).
-- `train_scores.csv` – target essay quality scores corresponding to `train_logs.csv` essay IDs.
-- `sample_submission.csv` – example submission format for the competition.
+- `train_logs.csv` - event-level logs of writing actions for 2,471 training essays; 8,405,898 rows and 11 columns.
+- `test_logs.csv` - event-level logs for the competition test essays; 6 rows and 11 columns in the local sample file.
+- `train_scores.csv` - target essay quality scores; 2,471 rows and 2 columns (`id`, `score`).
+- `sample_submission.csv` - example submission format for the competition.
+- `grouped_train_logs.csv` - generated essay-level feature table created from `train_logs.csv`; 2,471 rows and 24 columns.
+- `X_train_scores.csv` - generated score split for model preparation; 1,976 rows plus a saved index column.
+- `X_test_scores.csv` - generated score split for model preparation; 495 rows plus a saved index column.
 
-### Steps Performed in the Notebook
+### Preliminary Analysis Notebook
 
 1. **Configuration**
    - Installed and imported required libraries: `pandas`, `numpy`, `matplotlib`, and `ydata-profiling` (for automated profiling reports).
@@ -65,27 +72,68 @@ This notebook (`1) Preliminary-Data-Analysis.ipynb`) performs an exploratory/pre
 14. **Class Distribution (Target Variable)**
     - Reviewed unique score values, plotted a histogram of the score distribution, and computed summary statistics (`.describe()`) to understand the shape/skew of the target variable ahead of modeling.
 
+### Feature Preparation Notebook
+The second notebook builds the first version of an essay-level modeling table from the raw event logs.
+
+Main steps currently implemented:
+
+1. **Data Loading and Split Preparation**
+   - Loads `train_logs.csv` with pandas.
+   - Contains an early 80/20 split of log rows; the current saved `X_train_scores.csv` and `X_test_scores.csv` files are later overwritten by the score-table split described below.
+
+2. **Essay-Level Aggregation**
+   - Groups `train_logs` by essay `id`.
+   - Creates base features such as final word count, maximum `up_time`, minimum `down_time`, number of events, and writing duration.
+   - Computes `chars_per_essay` from `Input` activities.
+   - Computes `chars_per_minute` from character count and writing duration.
+
+3. **Pause Features**
+   - Sorts events by `id` and `down_time`.
+   - Computes pause time between events.
+   - Creates pause-related features including total pause time, pause percentage of writing duration, and pauses per word.
+
+4. **Activity Features**
+   - Computes counts and text-change lengths for selected activity types: `Remove/Cut`, `Nonproduction`, `Replace`, and `Paste`.
+   - Adds per-word ratios for removals and replacements.
+
+5. **Generated Modeling Table**
+   - Fills missing engineered feature values with 0.
+   - Saves the resulting essay-level table to `grouped_train_logs.csv`.
+
+6. **Profiling and Score Split**
+   - Uses `ydata-profiling` to inspect the engineered feature table.
+   - Loads `train_scores.csv`.
+   - Creates a stratified 80/20 split of the score table into `X_train_scores.csv` and `X_test_scores.csv`.
+
 ### Purpose
-This preliminary analysis lays the groundwork for feature engineering and model building by:
+This project currently lays the groundwork for feature engineering and model building by:
 - Validating data integrity (no unexpected duplicates, consistent schema between train/test).
 - Identifying data quality issues (missing values, outliers).
 - Understanding the distributions of key behavioral features (timing, activity type, word count).
 - Understanding the distribution of the target variable (essay score) to inform modeling choices.
+- Producing an initial aggregated feature table at essay level for future model experiments.
 
 ---
 
 ## Polski
 
 ### Opis ogólny
-Ten notatnik (`1) Preliminary-Data-Analysis.ipynb`) zawiera wstępną analizę eksploracyjną danych (EDA) dla konkursu Kaggle **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. Celem konkursu jest przewidywanie oceny jakości napisanego eseju na podstawie zachowań zarejestrowanych podczas pisania i edycji tekstu (naciśnięcia klawiszy, akcje myszy, czasy trwania itd.).
+Ten projekt zawiera wstępną analizę eksploracyjną danych oraz pierwsze przygotowanie cech dla konkursu Kaggle **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. Celem konkursu jest przewidywanie oceny jakości napisanego eseju na podstawie zachowań zarejestrowanych podczas pisania i edycji tekstu (naciśnięcia klawiszy, akcje myszy, czasy trwania, pauzy, edycje tekstu itd.).
+
+Praca jest podzielona na dwa notatniki:
+- `1) Preliminary-Data-Analysis.ipynb` - eksploracyjna analiza danych (EDA), sprawdzenie jakości danych, analiza rozkładów cech i analiza zmiennej docelowej.
+- `2) Future Preparation for the Model.ipynb` - pierwsze inżynierowanie cech z logów zdarzeń, generowanie cech na poziomie eseju, profilowanie przygotowanych danych oraz podział ocen na zbiór treningowy i testowy w proporcji 80/20.
 
 ### Wykorzystane zbiory danych
-- `train_logs.csv` – szczegółowe logi zdarzeń (naciśnięcia klawiszy, kliknięcia myszy, pauzy itp.) dla esejów treningowych.
-- `test_logs.csv` – logi tego samego typu dla esejów testowych (bez ocen docelowych).
-- `train_scores.csv` – docelowe oceny jakości esejów odpowiadające identyfikatorom `id` z pliku `train_logs.csv`.
-- `sample_submission.csv` – przykładowy format zgłoszenia wyników w konkursie.
+- `train_logs.csv` - szczegółowe logi zdarzeń dla 2 471 esejów treningowych; 8 405 898 wierszy i 11 kolumn.
+- `test_logs.csv` - logi zdarzeń dla zbioru testowego konkursu; lokalny przykładowy plik ma 6 wierszy i 11 kolumn.
+- `train_scores.csv` - docelowe oceny jakości esejów; 2 471 wierszy i 2 kolumny (`id`, `score`).
+- `sample_submission.csv` - przykładowy format zgłoszenia wyników w konkursie.
+- `grouped_train_logs.csv` - wygenerowana tabela cech na poziomie eseju utworzona z `train_logs.csv`; 2 471 wierszy i 24 kolumny.
+- `X_train_scores.csv` - wygenerowany treningowy podział tabeli ocen; 1 976 wierszy oraz zapisana kolumna indeksu.
+- `X_test_scores.csv` - wygenerowany testowy podział tabeli ocen; 495 wierszy oraz zapisana kolumna indeksu.
 
-### Kroki wykonane w notatniku
+### Notatnik analizy wstępnej
 
 1. **Konfiguracja**
    - Zainstalowano i zaimportowano wymagane biblioteki: `pandas`, `numpy`, `matplotlib` oraz `ydata-profiling` (do automatycznych raportów profilujących).
@@ -139,9 +187,43 @@ Ten notatnik (`1) Preliminary-Data-Analysis.ipynb`) zawiera wstępną analizę e
 14. **Rozkład klas (zmienna docelowa)**
     - Sprawdzono unikalne wartości ocen, narysowano histogram rozkładu ocen oraz obliczono statystyki opisowe (`.describe()`), aby zrozumieć kształt/skośność zmiennej docelowej przed budową modelu.
 
+### Notatnik przygotowania cech
+Drugi notatnik buduje pierwszą wersję tabeli modelowej na poziomie eseju na podstawie surowych logów zdarzeń.
+
+Aktualnie zaimplementowane kroki:
+
+1. **Wczytanie danych i przygotowanie podziału**
+   - Wczytuje `train_logs.csv` za pomocą pandas.
+   - Zawiera wczesny podział wierszy logów w proporcji 80/20; aktualne zapisane pliki `X_train_scores.csv` i `X_test_scores.csv` są później nadpisywane przez podział tabeli ocen opisany niżej.
+
+2. **Agregacja na poziomie eseju**
+   - Grupuje `train_logs` po identyfikatorze eseju `id`.
+   - Tworzy podstawowe cechy: końcową liczbę słów, maksymalny `up_time`, minimalny `down_time`, liczbę zdarzeń oraz czas pisania.
+   - Oblicza `chars_per_essay` na podstawie aktywności typu `Input`.
+   - Oblicza `chars_per_minute` na podstawie liczby znaków i czasu pisania.
+
+3. **Cechy pauz**
+   - Sortuje zdarzenia według `id` i `down_time`.
+   - Oblicza czas pauzy między kolejnymi zdarzeniami.
+   - Tworzy cechy dotyczące pauz, między innymi całkowity czas pauz, udział pauz w czasie pisania i liczbę pauz względem liczby słów.
+
+4. **Cechy aktywności**
+   - Oblicza liczby zdarzeń i długości zmian tekstu dla wybranych typów aktywności: `Remove/Cut`, `Nonproduction`, `Replace` i `Paste`.
+   - Dodaje wskaźniki względem liczby słów dla usunięć i zamian.
+
+5. **Wygenerowana tabela modelowa**
+   - Uzupełnia brakujące wartości cech wartością 0.
+   - Zapisuje końcową tabelę cech do `grouped_train_logs.csv`.
+
+6. **Profilowanie i podział ocen**
+   - Używa `ydata-profiling` do sprawdzenia wygenerowanej tabeli cech.
+   - Wczytuje `train_scores.csv`.
+   - Tworzy stratyfikowany podział tabeli ocen w proporcji 80/20 do plików `X_train_scores.csv` i `X_test_scores.csv`.
+
 ### Cel
-Ta wstępna analiza stanowi podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
+Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
 - Weryfikację integralności danych (brak nieoczekiwanych duplikatów, spójny schemat między zbiorem treningowym i testowym).
 - Identyfikację problemów z jakością danych (braki danych, wartości odstające).
 - Zrozumienie rozkładów kluczowych cech behawioralnych (czasy, typ aktywności, liczba słów).
 - Zrozumienie rozkładu zmiennej docelowej (ocena eseju), co pomaga w podejmowaniu decyzji modelowych.
+- Wygenerowanie pierwszej zagregowanej tabeli cech na poziomie eseju do przyszłych eksperymentów modelowych.
