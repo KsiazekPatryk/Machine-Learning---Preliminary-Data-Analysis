@@ -8,6 +8,7 @@ This project contains exploratory data analysis and early feature preparation fo
 The work is split across two notebooks:
 - `1) Preliminary-Data-Analysis.ipynb` - exploratory data analysis (EDA), data quality checks, feature distribution review, and target score analysis.
 - `2) Future Preparation for the Model.ipynb` - initial feature engineering from event-level logs, generation of aggregated essay-level features, profiling of engineered data, and an 80/20 train/test split of score rows.
+- `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - preparation of modeling data, constant-value benchmarking, Linear Regression evaluation, coefficient analysis, and feature normalization.
 
 ### Datasets Used
 - `train_logs.csv` - event-level logs of writing actions for 2,471 training essays; 8,405,898 rows and 11 columns.
@@ -112,6 +113,31 @@ Main steps currently implemented:
    - Reports 2,213 essay IDs where `down_time` or `up_time` actually decreases between consecutive events (`diff < 0`). This is the worksheet answer for the second question.
    - Keeps the stricter/non-strict comparison (`diff <= 0`) only as additional context; that variant gives 2,268 IDs because it also counts equal timestamps.
 
+### Model Selection and Linear Regression Notebook
+The third notebook moves the project from feature preparation toward model evaluation.
+
+Current steps include:
+
+1. **Modeling Data Preparation**
+   - Loads the aggregated essay-level features and the training/test score splits.
+   - Merges the feature table with the score data using the essay `id`.
+   - Removes identifiers, saved index columns, and selected features excluded from the initial experiments.
+   - Separates the feature matrix from the target `score` variable.
+
+2. **Constant-Value Benchmark**
+   - Builds a baseline with `DummyRegressor` using the mean prediction strategy.
+   - Evaluates the baseline with Root Mean Squared Error (RMSE).
+   - Calculates prediction variance and bias to better understand baseline behavior.
+
+3. **Linear Regression**
+   - Adds a reusable `train_and_evaluate` function for fitting models and comparing training and test RMSE.
+   - Trains an initial `LinearRegression` model.
+   - Extracts the model intercept and coefficients.
+   - Visualizes coefficient values to support initial feature interpretation.
+
+4. **Feature Normalization**
+   - Starts preparing the feature matrix with `StandardScaler` for further model experiments.
+
 ### Purpose
 This project currently lays the groundwork for feature engineering and model building by:
 - Validating data integrity (no unexpected duplicates, consistent schema between train/test).
@@ -120,6 +146,7 @@ This project currently lays the groundwork for feature engineering and model bui
 - Understanding the distribution of the target variable (essay score) to inform modeling choices.
 - Producing an initial aggregated feature table at essay level for future model experiments.
 - Verifying worksheet assumptions about `word_count` and event timing behavior directly from `train_logs.csv`.
+- Establishing a constant-value benchmark and an initial Linear Regression workflow for comparing future models.
 
 ---
 
@@ -131,6 +158,7 @@ Ten projekt zawiera wstępną analizę eksploracyjną danych oraz pierwsze przyg
 Praca jest podzielona na dwa notatniki:
 - `1) Preliminary-Data-Analysis.ipynb` - eksploracyjna analiza danych (EDA), sprawdzenie jakości danych, analiza rozkładów cech i analiza zmiennej docelowej.
 - `2) Future Preparation for the Model.ipynb` - pierwsze inżynierowanie cech z logów zdarzeń, generowanie cech na poziomie eseju, profilowanie przygotowanych danych oraz podział ocen na zbiór treningowy i testowy w proporcji 80/20.
+- `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - przygotowanie danych modelowych, benchmark stałej wartości, ocena regresji liniowej, analiza współczynników oraz normalizacja cech.
 
 ### Wykorzystane zbiory danych
 - `train_logs.csv` - szczegółowe logi zdarzeń dla 2 471 esejów treningowych; 8 405 898 wierszy i 11 kolumn.
@@ -235,6 +263,31 @@ Aktualnie zaimplementowane kroki:
    - Wskazuje 2 213 identyfikatorów esejów, dla których `down_time` albo `up_time` faktycznie spada między kolejnymi zdarzeniami (`diff < 0`). To jest poprawna odpowiedź do drugiego pytania w arkuszu.
    - Zostawia wariant porównawczy (`diff <= 0`) tylko jako kontekst; daje on 2 268 ID, ponieważ dolicza także równe znaczniki czasu.
 
+### Notatnik wyboru modelu i regresji liniowej
+Trzeci notatnik przenosi projekt od przygotowania cech do oceny modeli.
+
+Aktualnie zaimplementowane kroki:
+
+1. **Przygotowanie danych modelowych**
+   - Wczytuje zagregowane cechy na poziomie eseju oraz treningowy i testowy podział ocen.
+   - Łączy tabelę cech z ocenami za pomocą identyfikatora eseju `id`.
+   - Usuwa identyfikatory, zapisane kolumny indeksu oraz wybrane cechy wyłączone z pierwszych eksperymentów.
+   - Oddziela macierz cech od zmiennej docelowej `score`.
+
+2. **Benchmark stałej wartości**
+   - Tworzy model bazowy `DummyRegressor`, który przewiduje średnią wartość.
+   - Ocenia model bazowy za pomocą pierwiastka z błędu średniokwadratowego (RMSE).
+   - Oblicza wariancję i obciążenie predykcji, aby lepiej zrozumieć zachowanie modelu bazowego.
+
+3. **Regresja liniowa**
+   - Dodaje wielokrotnie używaną funkcję `train_and_evaluate` do trenowania modeli i porównywania RMSE dla zbioru treningowego i testowego.
+   - Trenuje pierwszy model `LinearRegression`.
+   - Wyodrębnia wyraz wolny oraz współczynniki modelu.
+   - Wizualizuje wartości współczynników, aby rozpocząć interpretację wpływu cech.
+
+4. **Normalizacja cech**
+   - Rozpoczyna przygotowanie macierzy cech za pomocą `StandardScaler`, aby wykorzystać znormalizowane cechy w kolejnych eksperymentach.
+
 ### Cel
 Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
 - Weryfikację integralności danych (brak nieoczekiwanych duplikatów, spójny schemat między zbiorem treningowym i testowym).
@@ -243,3 +296,4 @@ Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy 
 - Zrozumienie rozkładu zmiennej docelowej (ocena eseju), co pomaga w podejmowaniu decyzji modelowych.
 - Wygenerowanie pierwszej zagregowanej tabeli cech na poziomie eseju do przyszłych eksperymentów modelowych.
 - Zweryfikowanie założeń z arkusza dotyczących `word_count` oraz zachowania czasów zdarzeń bezpośrednio na podstawie `train_logs.csv`.
+- Utworzenie benchmarku stałej wartości oraz pierwszego procesu regresji liniowej do porównywania kolejnych modeli.
