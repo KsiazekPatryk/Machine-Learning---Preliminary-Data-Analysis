@@ -5,10 +5,13 @@
 ### Overview
 This project contains exploratory data analysis and early feature preparation for the Kaggle competition **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. The goal of the competition is to predict essay writing quality scores based on typing/editing behavior logged during the writing process (keystrokes, mouse actions, timings, pauses, text edits, etc.).
 
-The work is split across two notebooks:
+The work is organized into six notebooks, moving from exploratory analysis and feature preparation to model experiments:
 - `1) Preliminary-Data-Analysis.ipynb` - exploratory data analysis (EDA), data quality checks, feature distribution review, and target score analysis.
 - `2) Future Preparation for the Model.ipynb` - initial feature engineering from event-level logs, generation of aggregated essay-level features, profiling of engineered data, and an 80/20 train/test split of score rows.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - preparation of modeling data, constant-value benchmarking, Linear Regression evaluation, coefficient analysis, and feature normalization.
+- `4) Neural Networks Template.ipynb` - an `MLPRegressor` template with feature scaling, early stopping, and loss/validation-curve inspection. It currently expects `train_data.csv` and `test_data.csv`, which are not present in this repository, so it is not yet wired to the generated local modeling files.
+- `5)SVM.ipynb` - SVC classification (scores above 3 versus other scores) and SVR/LinearSVR regression experiments using scaled essay-level features.
+- `6)Tree-Based-Models.ipynb` - decision-tree depth experiments, tree feature importance, and `HistGradientBoostingRegressor` evaluation with permutation importance.
 
 ### Datasets Used
 - `train_logs.csv` - event-level logs of writing actions for 2,471 training essays; 8,405,898 rows and 11 columns.
@@ -18,6 +21,8 @@ The work is split across two notebooks:
 - `grouped_train_logs.csv` - generated essay-level feature table created from `train_logs.csv`; 2,471 rows and 24 columns.
 - `X_train_scores.csv` - generated score split for model preparation; 1,976 rows plus a saved index column.
 - `X_test_scores.csv` - generated score split for model preparation; 495 rows plus a saved index column.
+
+`X_test_scores.csv` is the internal validation split used to evaluate models; it is separate from the competition's `test_logs.csv`. The tree-based notebook currently uses scikit-learn's `HistGradientBoostingRegressor`; the XGBoost native library could not be loaded because the system OpenMP runtime (`libomp`) is unavailable.
 
 ### Preliminary Analysis Notebook
 
@@ -138,6 +143,15 @@ Current steps include:
 4. **Feature Normalization**
    - Starts preparing the feature matrix with `StandardScaler` for further model experiments.
 
+### Neural Networks Template
+The fourth notebook contains an `MLPRegressor` workflow with standardized features, early stopping, training-loss inspection, and validation-score plots. It is a template rather than a runnable project workflow at present: its input filenames (`train_data.csv` and `test_data.csv`) are not generated or included in this repository.
+
+### SVM Experiments
+The fifth notebook loads the generated essay-level feature table and score splits, then scales the input features. It explores SVC as a binary classifier using a score threshold of 3, and several SVR configurations for score regression, including a linear-kernel SVR and `LinearSVR`.
+
+### Tree-Based Models
+The sixth notebook compares decision trees at several maximum depths, inspects tree structure and feature importance, and evaluates `HistGradientBoostingRegressor`. With the current settings and the full 1,976/495 train/validation split, the validation RMSE is approximately `0.7190`. Permutation importance ranks `words_per_essay`, `chars_per_essay`, and `chars_per_minute` highest in this run. Results depend on the selected split and model parameters.
+
 ### Purpose
 This project currently lays the groundwork for feature engineering and model building by:
 - Validating data integrity (no unexpected duplicates, consistent schema between train/test).
@@ -146,7 +160,7 @@ This project currently lays the groundwork for feature engineering and model bui
 - Understanding the distribution of the target variable (essay score) to inform modeling choices.
 - Producing an initial aggregated feature table at essay level for future model experiments.
 - Verifying worksheet assumptions about `word_count` and event timing behavior directly from `train_logs.csv`.
-- Establishing a constant-value benchmark and an initial Linear Regression workflow for comparing future models.
+- Establishing a mean-value baseline and comparing linear regression, SVM, decision-tree, and histogram-based gradient-boosting approaches. The neural-network notebook remains a template that needs its input data wiring completed.
 
 ---
 
@@ -155,10 +169,13 @@ This project currently lays the groundwork for feature engineering and model bui
 ### Opis ogólny
 Ten projekt zawiera wstępną analizę eksploracyjną danych oraz pierwsze przygotowanie cech dla konkursu Kaggle **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. Celem konkursu jest przewidywanie oceny jakości napisanego eseju na podstawie zachowań zarejestrowanych podczas pisania i edycji tekstu (naciśnięcia klawiszy, akcje myszy, czasy trwania, pauzy, edycje tekstu itd.).
 
-Praca jest podzielona na dwa notatniki:
+Praca jest zorganizowana w sześciu notatnikach, od eksploracji danych i przygotowania cech po eksperymenty modelowe:
 - `1) Preliminary-Data-Analysis.ipynb` - eksploracyjna analiza danych (EDA), sprawdzenie jakości danych, analiza rozkładów cech i analiza zmiennej docelowej.
 - `2) Future Preparation for the Model.ipynb` - pierwsze inżynierowanie cech z logów zdarzeń, generowanie cech na poziomie eseju, profilowanie przygotowanych danych oraz podział ocen na zbiór treningowy i testowy w proporcji 80/20.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - przygotowanie danych modelowych, benchmark stałej wartości, ocena regresji liniowej, analiza współczynników oraz normalizacja cech.
+- `4) Neural Networks Template.ipynb` - szablon `MLPRegressor` ze skalowaniem cech, wczesnym zatrzymaniem i podglądem krzywej straty/wyników walidacyjnych. Obecnie oczekuje plików `train_data.csv` i `test_data.csv`, których repozytorium nie zawiera, więc nie jest jeszcze podłączony do lokalnych danych modelowych.
+- `5)SVM.ipynb` - eksperymenty klasyfikacji SVC (ocena powyżej 3 lub nie) oraz regresji SVR/LinearSVR na przeskalowanych cechach esejów.
+- `6)Tree-Based-Models.ipynb` - eksperymenty z różnymi głębokościami `DecisionTreeRegressor`, analiza ważności cech oraz ocena `HistGradientBoostingRegressor` i permutation importance.
 
 ### Wykorzystane zbiory danych
 - `train_logs.csv` - szczegółowe logi zdarzeń dla 2 471 esejów treningowych; 8 405 898 wierszy i 11 kolumn.
@@ -168,6 +185,8 @@ Praca jest podzielona na dwa notatniki:
 - `grouped_train_logs.csv` - wygenerowana tabela cech na poziomie eseju utworzona z `train_logs.csv`; 2 471 wierszy i 24 kolumny.
 - `X_train_scores.csv` - wygenerowany treningowy podział tabeli ocen; 1 976 wierszy oraz zapisana kolumna indeksu.
 - `X_test_scores.csv` - wygenerowany testowy podział tabeli ocen; 495 wierszy oraz zapisana kolumna indeksu.
+
+`X_test_scores.csv` jest wewnętrznym zbiorem walidacyjnym używanym do oceny modeli; nie jest tym samym co konkursowy plik `test_logs.csv`. Notatnik modeli drzewiastych korzysta obecnie z `HistGradientBoostingRegressor` z scikit-learn; biblioteka natywna XGBoost nie mogła zostać załadowana z powodu braku systemowego runtime OpenMP (`libomp`).
 
 ### Notatnik analizy wstępnej
 
@@ -288,6 +307,15 @@ Aktualnie zaimplementowane kroki:
 4. **Normalizacja cech**
    - Rozpoczyna przygotowanie macierzy cech za pomocą `StandardScaler`, aby wykorzystać znormalizowane cechy w kolejnych eksperymentach.
 
+### Szablon sieci neuronowej
+Czwarty notatnik zawiera przepływ pracy `MLPRegressor` ze standaryzacją cech, wczesnym zatrzymaniem, analizą straty treningowej i wykresami wyników walidacyjnych. Na razie jest to szablon, a nie działający przepływ projektu: używa nazw wejściowych `train_data.csv` i `test_data.csv`, których repozytorium nie generuje ani nie zawiera.
+
+### Eksperymenty SVM
+Piąty notatnik wczytuje zagregowaną tabelę cech esejów i podziały ocen, a następnie skaluje cechy wejściowe. Sprawdza SVC jako klasyfikator binarny z progiem oceny 3 oraz kilka konfiguracji SVR do regresji oceny, w tym SVR z jądrem liniowym i `LinearSVR`.
+
+### Modele drzewiaste
+Szósty notatnik porównuje drzewa decyzyjne o różnych maksymalnych głębokościach, analizuje strukturę drzewa i ważność cech, a następnie ocenia `HistGradientBoostingRegressor`. Przy aktualnych ustawieniach i pełnym podziale 1 976/495 RMSE walidacyjne wynosi około `0.7190`. Permutation importance wskazuje w tym przebiegu najwyżej `words_per_essay`, `chars_per_essay` i `chars_per_minute`. Wyniki zależą od podziału danych i parametrów modelu.
+
 ### Cel
 Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
 - Weryfikację integralności danych (brak nieoczekiwanych duplikatów, spójny schemat między zbiorem treningowym i testowym).
@@ -296,4 +324,4 @@ Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy 
 - Zrozumienie rozkładu zmiennej docelowej (ocena eseju), co pomaga w podejmowaniu decyzji modelowych.
 - Wygenerowanie pierwszej zagregowanej tabeli cech na poziomie eseju do przyszłych eksperymentów modelowych.
 - Zweryfikowanie założeń z arkusza dotyczących `word_count` oraz zachowania czasów zdarzeń bezpośrednio na podstawie `train_logs.csv`.
-- Utworzenie benchmarku stałej wartości oraz pierwszego procesu regresji liniowej do porównywania kolejnych modeli.
+- Utworzenie benchmarku średniej oraz porównanie regresji liniowej, SVM, drzew decyzyjnych i histogramowego gradient boostingu. Notatnik sieci neuronowej pozostaje szablonem wymagającym podłączenia danych wejściowych.
