@@ -5,13 +5,16 @@
 ### Overview
 This project contains exploratory data analysis and early feature preparation for the Kaggle competition **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. The goal of the competition is to predict essay writing quality scores based on typing/editing behavior logged during the writing process (keystrokes, mouse actions, timings, pauses, text edits, etc.).
 
-The work is organized into six notebooks, moving from exploratory analysis and feature preparation to model experiments:
+The essay-quality workflow is organized into six notebooks, moving from exploratory analysis and feature preparation to model experiments:
 - `1) Preliminary-Data-Analysis.ipynb` - exploratory data analysis (EDA), data quality checks, feature distribution review, and target score analysis.
 - `2) Future Preparation for the Model.ipynb` - initial feature engineering from event-level logs, generation of aggregated essay-level features, profiling of engineered data, and an 80/20 train/test split of score rows.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - preparation of modeling data, constant-value benchmarking, Linear Regression evaluation, coefficient analysis, and feature normalization.
 - `4) Neural Networks Template.ipynb` - an `MLPRegressor` template with feature scaling, early stopping, and loss/validation-curve inspection. It currently expects `train_data.csv` and `test_data.csv`, which are not present in this repository, so it is not yet wired to the generated local modeling files.
 - `5)SVM.ipynb` - SVC classification (scores above 3 versus other scores) and SVR/LinearSVR regression experiments using scaled essay-level features.
 - `6)Tree-Based-Models.ipynb` - decision-tree depth experiments, tree feature importance, and `HistGradientBoostingRegressor` evaluation with permutation importance.
+
+The repository also contains a separate sentiment-analysis notebook:
+- `7) Natural Language Processing.ipynb` - compares bag-of-words, TF-IDF, and Word2Vec-based text representations, then tests a Hugging Face transformer sentiment pipeline.
 
 ### Datasets Used
 - `train_logs.csv` - event-level logs of writing actions for 2,471 training essays; 8,405,898 rows and 11 columns.
@@ -23,6 +26,8 @@ The work is organized into six notebooks, moving from exploratory analysis and f
 - `X_test_scores.csv` - generated score split for model preparation; 495 rows plus a saved index column.
 
 `X_test_scores.csv` is the internal validation split used to evaluate models; it is separate from the competition's `test_logs.csv`. The tree-based notebook currently uses scikit-learn's `HistGradientBoostingRegressor`; the XGBoost native library could not be loaded because the system OpenMP runtime (`libomp`) is unavailable.
+
+The NLP notebook uses the labeled text datasets `train.csv` and `test.csv`. These are separate from the essay-writing competition datasets listed above. Its transformer section uses the default binary DistilBERT SST-2 sentiment pipeline; on the current saved run, the reported accuracy is approximately `0.5028`. The pipeline predicts only positive or negative sentiment, while the dataset also includes neutral labels, so this score is not a three-class evaluation.
 
 ### Preliminary Analysis Notebook
 
@@ -152,6 +157,9 @@ The fifth notebook loads the generated essay-level feature table and score split
 ### Tree-Based Models
 The sixth notebook compares decision trees at several maximum depths, inspects tree structure and feature importance, and evaluates `HistGradientBoostingRegressor`. With the current settings and the full 1,976/495 train/validation split, the validation RMSE is approximately `0.7190`. Permutation importance ranks `words_per_essay`, `chars_per_essay`, and `chars_per_minute` highest in this run. Results depend on the selected split and model parameters.
 
+### Natural Language Processing
+The seventh notebook is a separate text-sentiment experiment using `train.csv` and `test.csv`. It explores bag-of-words and TF-IDF features with logistic regression, Word2Vec embeddings, and a Hugging Face sentiment-analysis pipeline using the default DistilBERT model fine-tuned on SST-2. The transformer predicts only `POSITIVE` or `NEGATIVE`; because the labeled test data also contains neutral examples, its current accuracy of approximately `0.5028` should not be interpreted as a three-class score.
+
 ### Purpose
 This project currently lays the groundwork for feature engineering and model building by:
 - Validating data integrity (no unexpected duplicates, consistent schema between train/test).
@@ -161,6 +169,7 @@ This project currently lays the groundwork for feature engineering and model bui
 - Producing an initial aggregated feature table at essay level for future model experiments.
 - Verifying worksheet assumptions about `word_count` and event timing behavior directly from `train_logs.csv`.
 - Establishing a mean-value baseline and comparing linear regression, SVM, decision-tree, and histogram-based gradient-boosting approaches. The neural-network notebook remains a template that needs its input data wiring completed.
+- Including a separate NLP notebook for text-sentiment experiments; it is not part of the essay-quality competition workflow.
 
 ---
 
@@ -169,13 +178,16 @@ This project currently lays the groundwork for feature engineering and model bui
 ### Opis ogólny
 Ten projekt zawiera wstępną analizę eksploracyjną danych oraz pierwsze przygotowanie cech dla konkursu Kaggle **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. Celem konkursu jest przewidywanie oceny jakości napisanego eseju na podstawie zachowań zarejestrowanych podczas pisania i edycji tekstu (naciśnięcia klawiszy, akcje myszy, czasy trwania, pauzy, edycje tekstu itd.).
 
-Praca jest zorganizowana w sześciu notatnikach, od eksploracji danych i przygotowania cech po eksperymenty modelowe:
+Przepływ pracy dotyczący jakości esejów jest zorganizowany w sześciu notatnikach, od eksploracji danych i przygotowania cech po eksperymenty modelowe:
 - `1) Preliminary-Data-Analysis.ipynb` - eksploracyjna analiza danych (EDA), sprawdzenie jakości danych, analiza rozkładów cech i analiza zmiennej docelowej.
 - `2) Future Preparation for the Model.ipynb` - pierwsze inżynierowanie cech z logów zdarzeń, generowanie cech na poziomie eseju, profilowanie przygotowanych danych oraz podział ocen na zbiór treningowy i testowy w proporcji 80/20.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - przygotowanie danych modelowych, benchmark stałej wartości, ocena regresji liniowej, analiza współczynników oraz normalizacja cech.
 - `4) Neural Networks Template.ipynb` - szablon `MLPRegressor` ze skalowaniem cech, wczesnym zatrzymaniem i podglądem krzywej straty/wyników walidacyjnych. Obecnie oczekuje plików `train_data.csv` i `test_data.csv`, których repozytorium nie zawiera, więc nie jest jeszcze podłączony do lokalnych danych modelowych.
 - `5)SVM.ipynb` - eksperymenty klasyfikacji SVC (ocena powyżej 3 lub nie) oraz regresji SVR/LinearSVR na przeskalowanych cechach esejów.
 - `6)Tree-Based-Models.ipynb` - eksperymenty z różnymi głębokościami `DecisionTreeRegressor`, analiza ważności cech oraz ocena `HistGradientBoostingRegressor` i permutation importance.
+
+Repozytorium zawiera również osobny notatnik do analizy sentymentu:
+- `7) Natural Language Processing.ipynb` - porównuje reprezentacje tekstu bag-of-words, TF-IDF i Word2Vec, a następnie testuje transformerowy pipeline sentymentu z biblioteki Hugging Face.
 
 ### Wykorzystane zbiory danych
 - `train_logs.csv` - szczegółowe logi zdarzeń dla 2 471 esejów treningowych; 8 405 898 wierszy i 11 kolumn.
@@ -187,6 +199,8 @@ Praca jest zorganizowana w sześciu notatnikach, od eksploracji danych i przygot
 - `X_test_scores.csv` - wygenerowany testowy podział tabeli ocen; 495 wierszy oraz zapisana kolumna indeksu.
 
 `X_test_scores.csv` jest wewnętrznym zbiorem walidacyjnym używanym do oceny modeli; nie jest tym samym co konkursowy plik `test_logs.csv`. Notatnik modeli drzewiastych korzysta obecnie z `HistGradientBoostingRegressor` z scikit-learn; biblioteka natywna XGBoost nie mogła zostać załadowana z powodu braku systemowego runtime OpenMP (`libomp`).
+
+Notatnik NLP korzysta z oznaczonych zbiorów tekstowych `train.csv` i `test.csv`, które są niezależne od wymienionych wyżej danych konkursu esejowego. Sekcja transformerowa używa domyślnego, binarnego pipeline'u DistilBERT SST-2; w aktualnym zapisanym przebiegu uzyskana dokładność wynosi około `0.5028`. Pipeline przewiduje wyłącznie sentyment pozytywny lub negatywny, podczas gdy zbiór zawiera również etykietę neutralną, więc wynik nie jest oceną klasyfikacji trójklasowej.
 
 ### Notatnik analizy wstępnej
 
@@ -316,6 +330,9 @@ Piąty notatnik wczytuje zagregowaną tabelę cech esejów i podziały ocen, a n
 ### Modele drzewiaste
 Szósty notatnik porównuje drzewa decyzyjne o różnych maksymalnych głębokościach, analizuje strukturę drzewa i ważność cech, a następnie ocenia `HistGradientBoostingRegressor`. Przy aktualnych ustawieniach i pełnym podziale 1 976/495 RMSE walidacyjne wynosi około `0.7190`. Permutation importance wskazuje w tym przebiegu najwyżej `words_per_essay`, `chars_per_essay` i `chars_per_minute`. Wyniki zależą od podziału danych i parametrów modelu.
 
+### Przetwarzanie języka naturalnego
+Siódmy notatnik zawiera osobny eksperyment analizy sentymentu tekstu na podstawie `train.csv` i `test.csv`. Sprawdza cechy bag-of-words i TF-IDF z regresją logistyczną, embeddingi Word2Vec oraz pipeline analizy sentymentu Hugging Face z domyślnym modelem DistilBERT dostrojonym na SST-2. Transformer przewiduje wyłącznie etykiety `POSITIVE` i `NEGATIVE`; ponieważ oznaczony zbiór testowy zawiera również przykłady neutralne, aktualna dokładność około `0.5028` nie powinna być interpretowana jako wynik klasyfikacji trójklasowej.
+
 ### Cel
 Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
 - Weryfikację integralności danych (brak nieoczekiwanych duplikatów, spójny schemat między zbiorem treningowym i testowym).
@@ -325,3 +342,4 @@ Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy 
 - Wygenerowanie pierwszej zagregowanej tabeli cech na poziomie eseju do przyszłych eksperymentów modelowych.
 - Zweryfikowanie założeń z arkusza dotyczących `word_count` oraz zachowania czasów zdarzeń bezpośrednio na podstawie `train_logs.csv`.
 - Utworzenie benchmarku średniej oraz porównanie regresji liniowej, SVM, drzew decyzyjnych i histogramowego gradient boostingu. Notatnik sieci neuronowej pozostaje szablonem wymagającym podłączenia danych wejściowych.
+- Uwzględnienie osobnego notatnika NLP do eksperymentów analizy sentymentu tekstu; nie jest on częścią przepływu pracy konkursu dotyczącego jakości esejów.
