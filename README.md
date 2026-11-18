@@ -5,7 +5,7 @@
 ### Overview
 This project contains exploratory data analysis and early feature preparation for the Kaggle competition **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. The goal of the competition is to predict essay writing quality scores based on typing/editing behavior logged during the writing process (keystrokes, mouse actions, timings, pauses, text edits, etc.).
 
-The essay-quality workflow is organized into eleven notebooks, moving from exploratory analysis and feature preparation to model experiments, ensembling, hyperparameter tuning, and explainability:
+The essay-quality workflow is organized into twelve notebooks, moving from exploratory analysis and feature preparation to model experiments, ensembling, hyperparameter tuning, explainability, and a Kaggle submission pipeline:
 - `1) Preliminary-Data-Analysis.ipynb` - exploratory data analysis (EDA), data quality checks, feature distribution review, and target score analysis.
 - `2) Future Preparation for the Model.ipynb` - initial feature engineering from event-level logs, generation of aggregated essay-level features, profiling of engineered data, and an 80/20 train/test split of score rows.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - preparation of modeling data, constant-value benchmarking, Linear Regression evaluation, coefficient analysis, and feature normalization.
@@ -16,7 +16,8 @@ The essay-quality workflow is organized into eleven notebooks, moving from explo
 - `10)Training XGBoost on the New Features and Prediction Confidence.ipynb` - trains a native XGBoost model on the advanced features, plots feature importance, and analyses prediction confidence by comparing errors across `writing_time_no_pause` thresholds.
 - `11) Model Ensembling.ipynb` - compares `LinearRegression`, `MLPRegressor`, and `RandomForestRegressor`, then combines them in a `VotingRegressor`.
 - `12)Hyperparameter Optimization.ipynb` - tunes a `RandomForestRegressor` with Hyperopt (TPE, 50 evaluations, 5-fold cross-validated MSE) and inspects the search trials.
-- `13) Explainability with SHAP.ipynb` - work in progress: it repeats the XGBoost model and error analysis from notebook 10 and ends with an "Explainability with SHAP" section header. No SHAP code has been added yet.
+- `13) Explainability with SHAP.ipynb` - repeats the XGBoost model and error analysis from notebook 10, then explains the model with SHAP: summary plots on the training and test sets, a bar plot of mean absolute SHAP values, and a force plot for a single test essay.
+- `14) Preparing and Publishing a Model on Kaggle.ipynb` - a self-contained pipeline for the competition submission: it generates the essay-level features from raw logs, trains the scaled `VotingRegressor` ensemble (`LinearRegression`, `MLPRegressor`, `RandomForestRegressor`) on all training essays, predicts scores for the test logs, and writes `submission.csv`. Data paths work both on Kaggle (`/kaggle/input/...`) and locally.
 
 The repository also contains two separate notebooks that are not part of the essay-quality workflow:
 - `7) Natural Language Processing.ipynb` - compares bag-of-words, TF-IDF, and Word2Vec-based text representations, then tests a Hugging Face transformer sentiment pipeline.
@@ -185,7 +186,10 @@ The eleventh notebook scales the advanced features and compares `LinearRegressio
 The twelfth notebook uses Hyperopt (`fmin` with `tpe.suggest`, 50 evaluations) to search `n_estimators`, `max_depth`, `min_samples_split`, and `min_samples_leaf` of a `RandomForestRegressor`, minimizing 5-fold cross-validated MSE. The best found settings are `n_estimators=153`, `max_depth=16`, `min_samples_split=16`, and `min_samples_leaf=13`, giving a test RMSE of approximately `0.6830` (train RMSE approximately `0.5442`). The notebook also tabulates the trials and plots the `max_depth` distribution. It requires a Hyperopt version that accepts a NumPy `Generator` as `rstate` (the notebook uses `np.random.default_rng(42)`).
 
 ### Explainability with SHAP
-The thirteenth notebook is a work in progress. It currently repeats the data preparation, XGBoost model (test RMSE approximately `0.6943`), and prediction-confidence analysis from notebook 10 and ends with an empty "Explainability with SHAP" section; no SHAP code has been added yet.
+The thirteenth notebook repeats the data preparation, XGBoost model (test RMSE approximately `0.6943`), and prediction-confidence analysis from notebook 10. It then uses `shap.Explainer` on the trained booster to compute SHAP values and shows a summary (beeswarm) plot for the training and test sets, a bar plot of mean absolute SHAP values, and a force plot for the first test essay (predicted score approximately `3.33` versus actual `3.5`).
+
+### Preparing and Publishing a Model on Kaggle
+The fourteenth notebook packages the final workflow for submission to the competition. It defines `generate_features`, which builds the essay-level features (basic, pause, `perc_time_*`, and burst features) from raw event logs, and loads the data from `/kaggle/input/linking-writing-processes-to-writing-quality` when that folder exists, otherwise from the local project folder. It scales the training features with `StandardScaler`, fits a `VotingRegressor` of `LinearRegression`, `MLPRegressor`, and `RandomForestRegressor(max_depth=4)` on all 2,471 training essays, applies the same feature generation and scaling to `test_logs.csv`, and saves the predictions as `submission.csv` (columns `id` and `score`). Run the cells in order (or use "Restart kernel and run all"), because the model cells depend on variables defined earlier.
 
 ### Purpose
 This project currently lays the groundwork for feature engineering and model building by:
@@ -197,7 +201,8 @@ This project currently lays the groundwork for feature engineering and model bui
 - Verifying worksheet assumptions about `word_count` and event timing behavior directly from `train_logs.csv`.
 - Establishing a mean-value baseline and comparing linear regression, SVM, decision-tree, histogram-based gradient-boosting, XGBoost, ensemble, and tuned random-forest approaches. The neural-network notebook remains a template that needs its input data wiring completed.
 - Including separate NLP and recommender-system notebooks; they are not part of the essay-quality competition workflow.
-- Preparing the ground for SHAP-based model explainability (notebook 13 is still in progress).
+- Explaining model predictions with SHAP (notebook 13).
+- Packaging feature generation, ensemble training, and prediction into a single notebook that produces a Kaggle `submission.csv` (notebook 14).
 
 ---
 
@@ -206,7 +211,7 @@ This project currently lays the groundwork for feature engineering and model bui
 ### Opis ogólny
 Ten projekt zawiera wstępną analizę eksploracyjną danych oraz pierwsze przygotowanie cech dla konkursu Kaggle **["Linking Writing Processes to Writing Quality"](https://www.kaggle.com/competitions/linking-writing-processes-to-writing-quality/overview)**. Celem konkursu jest przewidywanie oceny jakości napisanego eseju na podstawie zachowań zarejestrowanych podczas pisania i edycji tekstu (naciśnięcia klawiszy, akcje myszy, czasy trwania, pauzy, edycje tekstu itd.).
 
-Przepływ pracy dotyczący jakości esejów jest zorganizowany w jedenastu notatnikach, od eksploracji danych i przygotowania cech po eksperymenty modelowe, łączenie modeli, strojenie hiperparametrów i wyjaśnialność:
+Przepływ pracy dotyczący jakości esejów jest zorganizowany w dwunastu notatnikach, od eksploracji danych i przygotowania cech po eksperymenty modelowe, łączenie modeli, strojenie hiperparametrów, wyjaśnialność i przygotowanie zgłoszenia do Kaggle:
 - `1) Preliminary-Data-Analysis.ipynb` - eksploracyjna analiza danych (EDA), sprawdzenie jakości danych, analiza rozkładów cech i analiza zmiennej docelowej.
 - `2) Future Preparation for the Model.ipynb` - pierwsze inżynierowanie cech z logów zdarzeń, generowanie cech na poziomie eseju, profilowanie przygotowanych danych oraz podział ocen na zbiór treningowy i testowy w proporcji 80/20.
 - `3) Model Selection Based on Data. Benchmark. Linear Regression.ipynb` - przygotowanie danych modelowych, benchmark stałej wartości, ocena regresji liniowej, analiza współczynników oraz normalizacja cech.
@@ -217,7 +222,8 @@ Przepływ pracy dotyczący jakości esejów jest zorganizowany w jedenastu notat
 - `10)Training XGBoost on the New Features and Prediction Confidence.ipynb` - trenuje natywny model XGBoost na zaawansowanych cechach, rysuje ważność cech i analizuje pewność predykcji, porównując błędy dla różnych progów `writing_time_no_pause`.
 - `11) Model Ensembling.ipynb` - porównuje `LinearRegression`, `MLPRegressor` i `RandomForestRegressor`, a następnie łączy je w `VotingRegressor`.
 - `12)Hyperparameter Optimization.ipynb` - stroi `RandomForestRegressor` za pomocą Hyperopt (TPE, 50 ewaluacji, 5-krotna walidacja krzyżowa MSE) i analizuje przebieg poszukiwań.
-- `13) Explainability with SHAP.ipynb` - praca w toku: powtarza model XGBoost i analizę błędów z notatnika 10 i kończy się nagłówkiem sekcji „Explainability with SHAP”. Kod SHAP nie został jeszcze dodany.
+- `13) Explainability with SHAP.ipynb` - powtarza model XGBoost i analizę błędów z notatnika 10, a następnie wyjaśnia model za pomocą SHAP: wykresy podsumowujące dla zbioru treningowego i testowego, wykres słupkowy średnich bezwzględnych wartości SHAP oraz wykres force dla pojedynczego eseju testowego.
+- `14) Preparing and Publishing a Model on Kaggle.ipynb` - samodzielny przepływ do zgłoszenia w konkursie: generuje cechy na poziomie eseju z surowych logów, trenuje przeskalowany zespół `VotingRegressor` (`LinearRegression`, `MLPRegressor`, `RandomForestRegressor`) na wszystkich esejach treningowych, przewiduje oceny dla logów testowych i zapisuje `submission.csv`. Ścieżki do danych działają zarówno na Kaggle (`/kaggle/input/...`), jak i lokalnie.
 
 Repozytorium zawiera również dwa osobne notatniki, które nie są częścią przepływu pracy dotyczącego jakości esejów:
 - `7) Natural Language Processing.ipynb` - porównuje reprezentacje tekstu bag-of-words, TF-IDF i Word2Vec, a następnie testuje transformerowy pipeline sentymentu z biblioteki Hugging Face.
@@ -386,7 +392,10 @@ Jedenasty notatnik skaluje zaawansowane cechy i porównuje `LinearRegression`, `
 Dwunasty notatnik używa Hyperopt (`fmin` z `tpe.suggest`, 50 ewaluacji) do przeszukania `n_estimators`, `max_depth`, `min_samples_split` i `min_samples_leaf` modelu `RandomForestRegressor`, minimalizując MSE z 5-krotnej walidacji krzyżowej. Najlepsze znalezione ustawienia to `n_estimators=153`, `max_depth=16`, `min_samples_split=16` i `min_samples_leaf=13`, co daje RMSE na zbiorze testowym około `0.6830` (RMSE treningowe około `0.5442`). Notatnik zestawia też próby w tabeli i rysuje rozkład `max_depth`. Wymaga wersji Hyperopt akceptującej generator NumPy `Generator` jako `rstate` (notatnik używa `np.random.default_rng(42)`).
 
 ### Wyjaśnialność z SHAP
-Trzynasty notatnik jest pracą w toku. Obecnie powtarza przygotowanie danych, model XGBoost (RMSE testowe około `0.6943`) i analizę pewności predykcji z notatnika 10, a kończy się pustą sekcją „Explainability with SHAP”; kod SHAP nie został jeszcze dodany.
+Trzynasty notatnik powtarza przygotowanie danych, model XGBoost (RMSE testowe około `0.6943`) i analizę pewności predykcji z notatnika 10. Następnie używa `shap.Explainer` na wytrenowanym modelu do obliczenia wartości SHAP i pokazuje wykres podsumowujący (beeswarm) dla zbioru treningowego i testowego, wykres słupkowy średnich bezwzględnych wartości SHAP oraz wykres force dla pierwszego eseju testowego (przewidywana ocena około `3.33` wobec rzeczywistej `3.5`).
+
+### Przygotowanie i publikowanie modelu w Kaggle
+Czternasty notatnik pakuje końcowy przepływ pracy do zgłoszenia w konkursie. Definiuje `generate_features`, która buduje cechy na poziomie eseju (podstawowe, pauzy, `perc_time_*` i cechy serii pisania) z surowych logów zdarzeń, i wczytuje dane z `/kaggle/input/linking-writing-processes-to-writing-quality`, jeśli ten folder istnieje, a w przeciwnym razie z lokalnego folderu projektu. Skaluje cechy treningowe za pomocą `StandardScaler`, trenuje `VotingRegressor` złożony z `LinearRegression`, `MLPRegressor` i `RandomForestRegressor(max_depth=4)` na wszystkich 2 471 esejach treningowych, stosuje to samo generowanie cech i skalowanie do `test_logs.csv` i zapisuje predykcje jako `submission.csv` (kolumny `id` i `score`). Komórki należy uruchamiać po kolei (lub użyć „Restart kernel and run all”), ponieważ komórki modelu zależą od wcześniej zdefiniowanych zmiennych.
 
 ### Cel
 Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy modelu poprzez:
@@ -398,4 +407,5 @@ Ten projekt stanowi obecnie podstawę do dalszego inżynierowania cech i budowy 
 - Zweryfikowanie założeń z arkusza dotyczących `word_count` oraz zachowania czasów zdarzeń bezpośrednio na podstawie `train_logs.csv`.
 - Utworzenie benchmarku średniej oraz porównanie regresji liniowej, SVM, drzew decyzyjnych, histogramowego gradient boostingu, XGBoost, zespołu modeli i nastrojonego lasu losowego. Notatnik sieci neuronowej pozostaje szablonem wymagającym podłączenia danych wejściowych.
 - Uwzględnienie osobnych notatników NLP i systemu rekomendacji; nie są one częścią przepływu pracy konkursu dotyczącego jakości esejów.
-- Przygotowanie gruntu pod wyjaśnialność modelu z użyciem SHAP (notatnik 13 jest nadal w toku).
+- Wyjaśnianie predykcji modelu z użyciem SHAP (notatnik 13).
+- Spakowanie generowania cech, trenowania zespołu modeli i predykcji w jednym notatniku tworzącym plik `submission.csv` dla Kaggle (notatnik 14).
